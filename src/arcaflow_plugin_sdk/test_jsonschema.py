@@ -161,7 +161,7 @@ class JSONSchemaTest(unittest.TestCase):
         test_cases: Dict[str, Tuple[schema.ObjectType, Dict]] = {
             "base": (
                 schema.ObjectType(TestData, {
-                    "a": schema.Field(
+                    "a": schema.PropertyType(
                         schema.StringType(),
                         "A",
                         "A string"
@@ -205,7 +205,7 @@ class JSONSchemaTest(unittest.TestCase):
         s = schema.ObjectType(
             TestData,
             {
-                "a": schema.Field(
+                "a": schema.PropertyType(
                     schema.OneOfType(
                         "_type",
                         schema.StringType(),
@@ -213,13 +213,13 @@ class JSONSchemaTest(unittest.TestCase):
                             "a": schema.ObjectType(
                                 A,
                                 {
-                                    "a": schema.Field(schema.StringType())
+                                    "a": schema.PropertyType(schema.StringType())
                                 }
                             ),
                             "b": schema.ObjectType(
                                 B,
                                 {
-                                    "b": schema.Field(schema.StringType())
+                                    "b": schema.PropertyType(schema.StringType())
                                 }
                             )
                         }
@@ -281,11 +281,11 @@ class JSONSchemaTest(unittest.TestCase):
             input=schema.ObjectType(
                 Request,
                 {
-                    "a": schema.Field(
+                    "a": schema.PropertyType(
                         schema.StringType(),
                         "a",
                     ),
-                    "field-b": schema.Field(
+                    "field-b": schema.PropertyType(
                         schema.IntType(),
                         "b",
                         field_override="b"
@@ -331,7 +331,7 @@ class JSONSchemaTest(unittest.TestCase):
             input=schema.ObjectType(
                 Request,
                 {
-                    "a": schema.Field(
+                    "a": schema.PropertyType(
                         schema.StringType(),
                         "a",
                     )
@@ -341,7 +341,7 @@ class JSONSchemaTest(unittest.TestCase):
                 "success": schema.ObjectType(
                     Response1,
                     {
-                        "b": schema.Field(
+                        "b": schema.PropertyType(
                             schema.StringType(),
                             "b"
                         )
@@ -350,7 +350,7 @@ class JSONSchemaTest(unittest.TestCase):
                 "error": schema.ObjectType(
                     Response2,
                     {
-                        "c": schema.Field(
+                        "c": schema.PropertyType(
                             schema.StringType(),
                             "c"
                         )

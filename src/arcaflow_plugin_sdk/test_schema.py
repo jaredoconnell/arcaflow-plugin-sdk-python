@@ -7,7 +7,7 @@ import enum
 import unittest
 
 from arcaflow_plugin_sdk.plugin import SchemaBuildException
-from arcaflow_plugin_sdk.schema import Field, ConstraintException, BadArgumentException, TypeID
+from arcaflow_plugin_sdk.schema import PropertyType, ConstraintException, BadArgumentException
 
 
 class Color(enum.Enum):
@@ -17,7 +17,7 @@ class Color(enum.Enum):
 
 class EnumTest(unittest.TestCase):
     def test_unserialize(self):
-        t = schema.EnumType(Color)
+        t = schema.StringEnumType(Color)
         self.assertEqual(Color.GREEN, t.unserialize("green"))
         self.assertEqual(Color.RED, t.unserialize("red"))
         self.assertEqual(Color.GREEN, t.unserialize(Color.GREEN))
@@ -42,7 +42,7 @@ class EnumTest(unittest.TestCase):
                 A = "foo"
                 B = False
 
-            schema.EnumType(BadEnum)
+            schema.StringEnumType(BadEnum)
 
 
 class BoolTest(unittest.TestCase):
@@ -303,19 +303,19 @@ class ObjectTest(unittest.TestCase):
     t: schema.ObjectType[TestClass] = schema.ObjectType(
         TestClass,
         {
-            "a": schema.Field(
+            "a": schema.PropertyType(
                 schema.StringType(),
                 required=True,
             ),
-            "b": schema.Field(
+            "b": schema.PropertyType(
                 schema.IntType(),
                 required=True,
             ),
-            "c": schema.Field(
+            "c": schema.PropertyType(
                 schema.FloatType(),
                 required=True
             ),
-            "d": schema.Field(
+            "d": schema.PropertyType(
                 schema.BoolType(),
                 required=True
             )
@@ -372,7 +372,7 @@ class ObjectTest(unittest.TestCase):
         s: schema.ObjectType[TestData] = schema.ObjectType(
             TestData,
             {
-                "test-data": schema.Field(
+                "test-data": schema.PropertyType(
                     schema.StringType(),
                     required=True,
                     field_override="a"
@@ -418,10 +418,10 @@ class ObjectTest(unittest.TestCase):
                     schema.ObjectType(
                         cls,
                         {
-                            "a": schema.Field(
+                            "a": schema.PropertyType(
                                 schema.StringType(),
                             ),
-                            "b": schema.Field(
+                            "b": schema.PropertyType(
                                 schema.StringType(),
                             )
                         }
@@ -445,7 +445,7 @@ class OneOfTest(unittest.TestCase):
                 "a": schema.ObjectType(
                     OneOfData1,
                     {
-                        "a": Field(
+                        "a": PropertyType(
                             schema.StringType()
                         )
                     }
@@ -453,7 +453,7 @@ class OneOfTest(unittest.TestCase):
                 "b": schema.ObjectType(
                     OneOfData2,
                     {
-                        "b": Field(
+                        "b": PropertyType(
                             schema.IntType()
                         )
                     }
@@ -479,7 +479,7 @@ class OneOfTest(unittest.TestCase):
                 "a": schema.ObjectType(
                     OneOfData1,
                     {
-                        "a": Field(
+                        "a": PropertyType(
                             schema.StringType()
                         )
                     }
@@ -487,7 +487,7 @@ class OneOfTest(unittest.TestCase):
                 "b": schema.ObjectType(
                     OneOfData2,
                     {
-                        "b": Field(
+                        "b": PropertyType(
                             schema.IntType()
                         )
                     }
@@ -525,10 +525,10 @@ class OneOfTest(unittest.TestCase):
                 "a": schema.ObjectType(
                     OneOfData1,
                     {
-                        "type": Field(
+                        "type": PropertyType(
                             schema.StringType(),
                         ),
-                        "a": Field(
+                        "a": PropertyType(
                             schema.StringType()
                         )
                     }
@@ -536,7 +536,7 @@ class OneOfTest(unittest.TestCase):
                 "b": schema.ObjectType(
                     OneOfData2,
                     {
-                        "b": Field(
+                        "b": PropertyType(
                             schema.IntType()
                         )
                     }
@@ -570,10 +570,10 @@ class OneOfTest(unittest.TestCase):
                 "a": schema.ObjectType(
                     OneOfData1,
                     {
-                        "type": Field(
+                        "type": PropertyType(
                             schema.StringType(),
                         ),
-                        "a": Field(
+                        "a": PropertyType(
                             schema.StringType()
                         )
                     }
@@ -581,7 +581,7 @@ class OneOfTest(unittest.TestCase):
                 "b": schema.ObjectType(
                     OneOfData2,
                     {
-                        "b": Field(
+                        "b": PropertyType(
                             schema.IntType()
                         )
                     }
@@ -623,10 +623,10 @@ class OneOfTest(unittest.TestCase):
                 "a": schema.ObjectType(
                     OneOfData1,
                     {
-                        "type": Field(
+                        "type": PropertyType(
                             schema.StringType(),
                         ),
-                        "a": Field(
+                        "a": PropertyType(
                             schema.StringType()
                         )
                     }
@@ -634,7 +634,7 @@ class OneOfTest(unittest.TestCase):
                 "b": schema.ObjectType(
                     OneOfData2,
                     {
-                        "b": Field(
+                        "b": PropertyType(
                             schema.IntType()
                         )
                     }

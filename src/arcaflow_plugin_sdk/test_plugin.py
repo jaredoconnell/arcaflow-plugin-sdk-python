@@ -8,39 +8,40 @@ from enum import Enum
 from re import Pattern
 from typing import List, Dict
 from arcaflow_plugin_sdk import schema, validation, plugin, annotations
-from arcaflow_plugin_sdk.plugin import SchemaBuildException, _Resolver
+from arcaflow_plugin_sdk.plugin import SchemaBuildException
+from arcaflow_plugin_sdk.schemabuilder import SchemaBuilder
 from arcaflow_plugin_sdk.schema import TypeID, OneOfType, ConstraintException
 
 
 class ResolverTest(unittest.TestCase):
     def test_non_dataclass(self):
         with self.assertRaises(SchemaBuildException) as ctx:
-            _Resolver.resolve(complex)
+            SchemaBuilder.resolve(complex)
         self.assertIn("complex numbers are not supported", ctx.exception.msg)
 
     def test_regexp(self):
-        resolved_type = _Resolver.resolve(Pattern)
+        resolved_type = SchemaBuilder.resolve(Pattern)
         self.assertEqual(schema.TypeID.PATTERN, resolved_type.type_id())
 
     def test_string(self):
         test: str = "foo"
-        resolved_type = _Resolver.resolve(type(test))
+        resolved_type = SchemaBuilder.resolve(type(test))
         self.assertEqual(schema.TypeID.STRING, resolved_type.type_id())
-        resolved_type = _Resolver.resolve(test)
+        resolved_type = SchemaBuilder.resolve(test)
         self.assertEqual(schema.TypeID.STRING, resolved_type.type_id())
 
     def test_int(self):
         test: int = 5
-        resolved_type = _Resolver.resolve(type(test))
+        resolved_type = SchemaBuilder.resolve(type(test))
         self.assertEqual(schema.TypeID.INT, resolved_type.type_id())
-        resolved_type = _Resolver.resolve(test)
+        resolved_type = SchemaBuilder.resolve(test)
         self.assertEqual(schema.TypeID.INT, resolved_type.type_id())
 
     def test_float(self):
         test: float = 3.14
-        resolved_type = _Resolver.resolve(type(test))
+        resolved_type = SchemaBuilder.resolve(type(test))
         self.assertEqual(schema.TypeID.FLOAT, resolved_type.type_id())
-        resolved_type = _Resolver.resolve(test)
+        resolved_type = SchemaBuilder.resolve(test)
         self.assertEqual(schema.TypeID.FLOAT, resolved_type.type_id())
 
     def test_enum(self):
@@ -48,29 +49,29 @@ class ResolverTest(unittest.TestCase):
             A = "a"
             B = "b"
 
-        resolved_type = _Resolver.resolve(TestEnum)
+        resolved_type = SchemaBuilder.resolve(TestEnum)
         self.assertEqual(schema.TypeID.ENUM, resolved_type.type_id())
 
     def test_list(self):
-        resolved_type: schema.ListType[str] = _Resolver.resolve(List[str])
+        resolved_type: schema.ListType[str] = SchemaBuilder.resolve(List[str])
         self.assertEqual(schema.TypeID.LIST, resolved_type.type_id())
         self.assertEqual(schema.TypeID.STRING, resolved_type.type.type_id())
 
         test: list = []
         with self.assertRaises(SchemaBuildException):
-            _Resolver.resolve(type(test))
+            SchemaBuilder.resolve(type(test))
 
     def test_map(self):
-        resolved_type: schema.MapType[str, str] = _Resolver.resolve(Dict[str, str])
+        resolved_type: schema.MapType[str, str] = SchemaBuilder.resolve(Dict[str, str])
         self.assertEqual(schema.TypeID.MAP, resolved_type.type_id())
         self.assertEqual(schema.TypeID.STRING, resolved_type.key_type.type_id())
         self.assertEqual(schema.TypeID.STRING, resolved_type.value_type.type_id())
 
         test: dict = {}
         with self.assertRaises(SchemaBuildException):
-            _Resolver.resolve(type(test))
+            SchemaBuilder.resolve(type(test))
 
-        resolved_type = _Resolver.resolve(dict[str, str])
+        resolved_type = SchemaBuilder.resolve(dict[str, str])
         self.assertEqual(schema.TypeID.MAP, resolved_type.type_id())
         self.assertEqual(schema.TypeID.STRING, resolved_type.key_type.type_id())
         self.assertEqual(schema.TypeID.STRING, resolved_type.value_type.type_id())
@@ -83,7 +84,7 @@ class ResolverTest(unittest.TestCase):
             d: bool
 
         with self.assertRaises(SchemaBuildException):
-            _Resolver.resolve(TestData)
+            SchemaBuilder.resolve(TestData)
 
         @dataclasses.dataclass
         class TestData:
@@ -93,7 +94,7 @@ class ResolverTest(unittest.TestCase):
             d: bool
 
         resolved_type: schema.ObjectType
-        resolved_type = _Resolver.resolve(TestData)
+        resolved_type = SchemaBuilder.resolve(TestData)
         self.assertEqual(schema.TypeID.OBJECT, resolved_type.type_id())
 
         self.assertEqual("a", resolved_type.properties["a"].name)
@@ -117,7 +118,7 @@ class ResolverTest(unittest.TestCase):
             d: bool = True
 
         resolved_type: schema.ObjectType
-        resolved_type = _Resolver.resolve(TestData)
+        resolved_type = SchemaBuilder.resolve(TestData)
         self.assertEqual(schema.TypeID.OBJECT, resolved_type.type_id())
 
         self.assertEqual("a", resolved_type.properties["a"].name)
@@ -148,7 +149,7 @@ class ResolverTest(unittest.TestCase):
             a: typing.Union[A, B]
 
         resolved_type: schema.ObjectType
-        resolved_type = _Resolver.resolve(TestData)
+        resolved_type = SchemaBuilder.resolve(TestData)
         self.assertEqual(TypeID.ONEOF, resolved_type.properties["a"].type.type_id())
         t: OneOfType = resolved_type.properties["a"].type
         self.assertEqual(t.discriminator_field_name, "_type")
@@ -178,7 +179,7 @@ class ResolverTest(unittest.TestCase):
             ]
 
         resolved_type: schema.ObjectType
-        resolved_type = _Resolver.resolve(TestData)
+        resolved_type = SchemaBuilder.resolve(TestData)
         self.assertEqual(TypeID.ONEOF, resolved_type.properties["a"].type.type_id())
         t: OneOfType = resolved_type.properties["a"].type
         self.assertEqual(t.discriminator_field_name, "discriminator")
@@ -190,14 +191,14 @@ class ResolverTest(unittest.TestCase):
             a: typing.Optional[str] = None
 
         resolved_type: schema.ObjectType
-        resolved_type = _Resolver.resolve(TestData)
+        resolved_type = SchemaBuilder.resolve(TestData)
         self.assertEqual(schema.TypeID.OBJECT, resolved_type.type_id())
         self.assertFalse(resolved_type.properties["a"].required)
         self.assertEqual(TypeID.STRING, resolved_type.properties["a"].type.type_id())
 
     def test_annotated(self):
         resolved_type: schema.StringType
-        resolved_type = _Resolver.resolve(typing.Annotated[str, validation.min(3)])
+        resolved_type = SchemaBuilder.resolve(typing.Annotated[str, validation.min(3)])
         self.assertEqual(schema.TypeID.STRING, resolved_type.type_id())
         self.assertEqual(3, resolved_type._min_length)
 
@@ -206,7 +207,7 @@ class ResolverTest(unittest.TestCase):
             a: typing.Annotated[typing.Optional[str], validation.min(3)] = None
 
         resolved_type2: schema.ObjectType
-        resolved_type2 = _Resolver.resolve(TestData)
+        resolved_type2 = SchemaBuilder.resolve(TestData)
         a = resolved_type2.properties["a"]
         self.assertEqual(schema.TypeID.STRING, a.type.type_id())
         self.assertFalse(a.required)
@@ -218,7 +219,7 @@ class ResolverTest(unittest.TestCase):
             class TestData:
                 a: typing.Annotated[typing.Optional[str], "foo"] = None
 
-            _Resolver.resolve(TestData)
+            SchemaBuilder.resolve(TestData)
 
     def test_annotated_required_if(self):
         @dataclasses.dataclass
@@ -227,7 +228,7 @@ class ResolverTest(unittest.TestCase):
             b: typing.Optional[str] = None
 
         t: schema.ObjectType
-        t = _Resolver.resolve(TestData2)
+        t = SchemaBuilder.resolve(TestData2)
         a = t.properties["a"]
         b = t.properties["b"]
 
@@ -240,7 +241,7 @@ class ResolverTest(unittest.TestCase):
         class TestData:
             a: str = dataclasses.field(metadata={"id": "test-field"})
 
-        t: schema.ObjectType = _Resolver.resolve(TestData)
+        t: schema.ObjectType = SchemaBuilder.resolve(TestData)
         a = t.properties["test-field"]
         self.assertEqual(a.field_override, "a")
 
@@ -248,7 +249,7 @@ class ResolverTest(unittest.TestCase):
         @dataclasses.dataclass
         class TestData:
             a: typing.Dict[str, str]
-        t: schema.ObjectType = _Resolver.resolve(TestData)
+        t: schema.ObjectType = SchemaBuilder.resolve(TestData)
         with self.assertRaises(ConstraintException):
             t.serialize(TestData(type(dict[str, str])))
 
