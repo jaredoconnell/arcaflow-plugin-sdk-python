@@ -49,7 +49,16 @@ _HELLO_MESSAGE_SCHEMA = schema.build_object_schema(HelloMessage)
 
 def _handle_exit(_signo, _stack_frame):
     print("Exiting normally")
+    cleanup_plugin()
     sys.exit(0)
+
+class TimeoutError(Exception):
+        pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutError()
+
+plugin_running = False
 
 
 def run_plugin(
@@ -90,7 +99,11 @@ def run_plugin(
         out_buffer = io.StringIO()
         sys.stdout = out_buffer
         sys.stderr = out_buffer
+        plugin_running = True
+        # Make it so that we can terminate the step if it takes too long after cleanup.
+        signal.signal(signal.SIGALRM, timeout_handler)
         output_id, output_data = s.call_step(message["id"], s.unserialize_input(message["id"], message["config"]))
+        plugin_running = False
         sys.stdout = original_stdout
         sys.stderr = original_stderr
         encoder.encode({
@@ -102,6 +115,9 @@ def run_plugin(
     except SystemExit:
         return 1
     return 0
+
+def cleanup_plugin():
+    pass
 
 
 class PluginClientStateException(Exception):

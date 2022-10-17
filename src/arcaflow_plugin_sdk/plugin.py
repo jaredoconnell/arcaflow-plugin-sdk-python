@@ -27,6 +27,7 @@ def step(
         description: str,
         outputs: Dict[str, Type],
         icon: typing.Optional[str] = None,
+        cleanup: typing.Optional[Callable] = None,
 ) -> Callable[
     [_step_decorator_param],
     schema.StepType
@@ -40,6 +41,7 @@ def step(
     :param description: The human-readable description for the step.
     :param outputs: A dict linking response IDs to response object types.
     :param icon: SVG icon for this step.
+    :param cleanup: A function that runs after the step finishes or is terminated.
     :return: A schema for the step.
     """
 
@@ -75,6 +77,7 @@ def step(
             input=build_object_schema(input_param.annotation),
             outputs=new_responses,
             handler=func,
+            cleanup=cleanup,
         )
 
     return step_decorator

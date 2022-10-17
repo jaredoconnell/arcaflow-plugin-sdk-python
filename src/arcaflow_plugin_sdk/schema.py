@@ -3008,7 +3008,7 @@ class StepOutputSchema(_JSONSchemaGenerator, _OpenAPIGenerator):
 @dataclass
 class StepSchema:
     """
-    This class holds the definition for a single step, it's input and output definitions.
+    This class holds the definition for a single step; its input and output definitions.
 
     **Example:**
 
@@ -5231,6 +5231,7 @@ class StepType(StepSchema):
     """
 
     _handler: Callable[[StepInputT], typing.Tuple[str, StepOutputT]]
+    _cleanup: Optional[Callable]
     input: ScopeType
     outputs: Dict[ID_TYPE, StepOutputType]
 
@@ -5243,10 +5244,12 @@ class StepType(StepSchema):
                 ID_TYPE,
                 StepOutputType
             ],
-            display: Optional[DisplayValue] = None
+            display: Optional[DisplayValue] = None,
+            cleanup: Optional[Callable] = None
     ):
         super().__init__(id, input, outputs, display)
         self._handler = handler
+        self._cleanup = cleanup
 
     def __call__(
             self,
@@ -5282,7 +5285,9 @@ class StepType(StepSchema):
         if not skip_output_validation:
             output.validate(output_data, tuple(["output", output_id]))
         return output_id, output_data
-
+    
+    def exec_cleanup(self):
+        result = self.cleanup()
 
 class SchemaType(Schema):
     """
